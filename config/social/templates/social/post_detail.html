@@ -1,0 +1,166 @@
+{% extends 'landing/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'posts' %}" class="btn btn-light">Back to Feed</a>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-5 col-sm-12 border-bottom">
+            <p><strong>{{ post.user }}</strong> {{ post.created }}</p>
+            <p>
+                
+                {% if request.user == post.user %}
+                    <a href="{% url 'update_post' post.pk %}" style="color: #333;"><i class="far fa-edit"></i></a>
+                    <a href="{% url 'delete_post' post.pk %}" style="color: #333;"><i class="fas fa-trash"></i></a>
+                {% endif %}
+            </p>
+            <p>{{ post.body }}</p>
+            <br>
+            {% if request.user.is_authenticated %}
+                <form action="{% url 'like_post' post.pk %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" value="{{request.path}}" name="next">
+                    <button type="submit" >like</button>
+                </form>
+                <br>
+                <br>br
+                <form action="{% url 'dislike_post' post.pk %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" value="{{request.path}}" name="next">
+                    <button type="submit" >Dislike</button>
+                </form>
+                <br>
+                <br>
+
+                <p>likes count :{{likes_count}}</p>
+                <p>dislikes count :{{dislikes_count}}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-5 col-sm-12">
+            <h5>Add a Comment!</h5>
+        </div>
+    </div>
+    {% if request.user.is_authenticated %}
+        <div class="row justify-content-center mt-3 mb-5">
+            <div class="col-md-5 col-sm-12">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form | crispy }}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success mt-3">Submit!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% else %}
+    <p>
+        <a href="{% url 'account_login' %}">login</a>to leave comment
+    </p>
+    {% endif %}
+
+
+    {% for comment in comments %}
+        {% if comment.is_parent %}
+            <div class="row justify-content-center mt-3 mb-5 border-bottom">
+                <div class="col-md-5 col-sm-12">
+                    <p>
+                        <strong><a href="{% url 'profile' comment.user.profile.pk %}">{{ comment.user }}</a></strong> {{ comment.created }}
+                        {% if request.user == comment.user  and request.user.is_authenticated %}
+                            <a href="{% url 'update_comment' post.pk comment.pk %}" style="color: #333;"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'delete_comment' post.pk comment.pk %}" style="color: #333;"><i class="fas fa-trash"></i></a>
+                        {% endif %}
+                    </p>
+                    <p>{{ comment.comment }}</p>
+                    {% if comment.tags.all %}
+                        {% for tag in comment.tags.all %}
+                            <a href="{% url 'explore'  %}?q={{tag.name}}">#{{tag.name}}</a>
+                        {% endfor %}
+                    {% endif %}
+                    <br>
+
+                    <div class="container text-center">
+                        {% if comment.image.all.count > 0 %}
+                            {% for img in comment.image.all %}
+                                <img src="{{img.image.url}}" alt="" width="150px" height="150px">
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% if request.user.is_authenticated %}
+                    <div class="d-flex flex-row">
+                        <form action="{% url 'like_comment' post.pk comment.pk %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" value="{{request.path}}" name="next" >
+                            <button class="remove-default-btn" type="submit" >
+                                Like<i class="far fa-thumbs-up"> <span>{{ comment.likes.all.count }}</span></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{% url 'dislike_comment' post.pk comment.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button class="remove-default-btn" type="submit">
+                                <i class="far fa-thumbs-down"> <span>{{ comment.dislikes.all.count }}</span></i>
+                            </button>
+                        </form>
+                        <button class="remove-defaul-btn"  ><i class="far fa-comment-dots" onclick="commentFormToggle('{{comment.pk}}')" ></i></button>
+                    </div>
+                {% endif %}
+            </div>
+                <div class="row justify-content-center mt-3 mb-5 d-none" id="{{comment.pk}}" >
+                    <div class="col-md-5 col-sm-12">
+                        <form method="POST" enctype="multipart/form-data" action="{% url 'replay_comment' post.pk comment.pk %}">
+                            {% csrf_token %}
+                            {{ form | crispy }}
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success mt-3">Replay!</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+        
+                {% for child_comment in comment.children %}
+                    <div class="row justify-content-center mt-3 mb-5 child-comment" style="margin-left: 50px" >
+                        <div class="col-md-5 col-sm-12 border-bottom">
+                            <p>
+                                <div>
+                                    <a href="{% url 'profile' child_comment.user.profile.pk %}">
+                                        <img class="round-circle post-img" height="30" width="30" src="{{ child_comment.user.profile.image.url }}" />
+                                    </a>
+                                    <p class="post-text">
+                                        <a class="text-primary post-link" href="{% url 'profile' child_comment.user.profile.pk %}">@{{ child_comment.user }}</a> {{ child_comment.created }}
+                                    </p>
+                                </div>
+                                {% if request.user == child_comment.user %}
+                                    <a href="{% url 'delete_comment' post.pk child_comment.pk %}" class="edit-color"><i class="fas fa-trash"></i></a>
+                                    <a href="{% url 'update_comment' post.pk child_comment.pk %}" style="color: #333;"><i class="fas fa-edit"></i></a>
+
+                                {% endif %}
+                            </p>
+                            <p>{{ child_comment.comment }}</p>
+
+                            <div class="container text-center">
+                                {% if child_comment.image.all.count > 0 %}
+                                    {% for img in child_comment.image.all %}
+                                        <img src="{{img.image.url}}" alt="" width="150px" height="150px">
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                        </div>
+                    </div>
+                {% endfor %}
+
+        {% endif %}
+    {% endfor %}
+
+</div>
+
+
+{% endblock content %}

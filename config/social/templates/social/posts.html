@@ -1,0 +1,44 @@
+{% extends 'landing/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-5 col-sm-12 border-bottom">
+            <h5>Add a Post!</h5>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-3 mb-5">
+        <div class="col-md-5 col-sm-12 border-bottom">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form | crispy }}
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success mt-3" type="submit">Submit!</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% for post in posts %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8 col-sm-12 border-bottom position-relative">
+            <p><a style="text-decoration: none;" class="text-primary "href="{% url 'profile' post.user.profile.pk %}">{{ post.user }}</a> {{ post.created }}</p>
+
+            <div class="position-relative">
+                <a href="{% url 'post_detail' post.pk %}" class="stretched-link"><p>{{ post.body }}</p></a>
+                    
+            </div>
+            <div class="text-center container">
+                {% if post.image.count > 0 %}
+                    {% for img in post.image.all %}
+                        <img src="{{img.image.url}}" width="250px" height="250px" alt="">
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}

@@ -1,0 +1,63 @@
+<div class="dropdown">
+	<span class="badge bg-primary notification-badge" onclick="ToggleNotification()" >{{ notifications.count }}</span>
+	<div class="dropdown-content d-none"  id="notification-container">
+        {% for noti  in notifications %}
+            {% if noti.post %}
+
+                    {% if noti.notification_type == 1 %}
+
+                            <div class="dropdown-item-parent">
+                                    <a href="{% url 'post_notification' noti.post.pk noti.pk %}">@ {{noti.from_user}} Liked your post</a>
+                                    <span onclick="removeNotification(``,'{{request.path}}')" class="dropdown-item-close">&times;</span>
+                            </div>
+                    
+                    {% elif noti.notification_type == 2 %}
+                    
+                            <div class="dropdown-item-parent">
+                                <a href="{% url 'post_notification' noti.post.pk noti.pk %}">@ {{noti.from_user}} comment on your post</a>
+                                <span class="dropdown-item-close" onclick="removeNotification(``,'{{request.path}}')" >&times;</span>
+                            </div>
+
+                    {% endif %}
+            
+
+            {% elif noti.comment %}
+
+                    {% if noti.notification_type == 1 %}
+
+                        <div class="dropdown-item-parent">
+                            <a href="{% url 'post_notification' noti.comment.post.pk noti.pk %}">@ {{noti.from_user}} liked your comment</a>
+                            <span class="dropdown-item-close" onclick="removeNotification(``,'{{request.path}}')" >&times;</span>
+                        </div>
+
+                    {% elif noti.notification_type == 2 %}
+
+                        <div class="dropdown-item-parent">
+                            <a href="{% url 'post_notification' noti.comment.post.pk noti.pk %}">@ {{noti.from_user}} replied your comment</a>
+                            <span class="dropdown-item-close" onclick="removeNotification(``,'{{request.path}}')" >&times;</span>
+                        </div>
+                    
+                    {% endif %}
+
+            {% elif noti.thread %}
+            
+                        {% if noti.notification_type == 4 %}
+
+                            <div class="dropdown-item-parent">
+                                <a href="{% url 'thread' noti.thread.pk %}">@ {{noti.from_user}} sent you a message</a>
+                                <span class="dropdown-item-close" onclick="removeNotification(``,'{{request.path}}')" >&times;</span>
+                            </div>
+
+                        {% endif %}
+            {% else %}
+
+                <div class="dropdown-item-parent">
+                    <a href="{% url 'follow_notification' noti.from_user.profile.pk noti.pk %}">@ {{noti.from_user}} has started folloing</a>
+                    <span class="dropdown-item-close" onclick="removeNotification(``,'{{request.path}}')" >&times;</span>
+                </div>
+
+            {% endif %}
+
+        {% endfor %}
+    </div>
+</div>

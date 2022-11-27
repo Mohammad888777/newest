@@ -1,0 +1,85 @@
+{% extends 'landing/base.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-5 col-sm-6">
+            <a href="{% url 'posts' %}" class="btn btn-light">Back To Feed</a>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-5 col-sm-12">
+            {% if tag %}
+                <h3>Explore : #{{tag.name}} posts</h3>
+                <p class="mb-3">Most recent posts tagged with {{ tag.name }}</p>
+            {% else %}
+                    <h3>Explore Posts</h3>
+					<p class="mb-3">Explore tags to find new posts</p>
+            {% endif %}
+
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger">{{message}}</div>
+                {% endfor %}
+            {% endif %}
+
+
+            <form action="" method="post" class="mb-5">
+                {% csrf_token %}
+                {{form|crispy}}
+            </form>
+        </div>
+    </div>
+
+    {% for post in posts %}
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-5 col-sm-12 border-bottom">
+
+      
+                <div>
+                    <a href="{% url 'profile' post.user.profile.pk %}">
+                        <img class="round-circle post-img" height="30px" width="30px" src="{{ post.user.profile.image.url }}" />
+                    </a>
+                    <p class="post-text">
+                        <a class="text-primary post-link" href="{% url 'profile' post.user.profile.pk %}">@{{ post.user.username }}</a> {{ post.created }}
+                    </p>
+                    <span  onclick="toggleShare('{{post.pk}}')" ><i class="far fa-share-square share-btn" ></i></span>
+                </div>
+
+       
+
+
+
+            
+
+
+            <div class="position-relative">
+                
+                <a href="{% url 'post_detail' post.pk %}" class="stretched-link"></a>
+                <div class="">
+                    <p>..</p>
+                </div>
+                
+            </div>
+            <div class="body">
+                <p>{{ post.body }}</p>
+                {% if post.image.count > 0 %}
+                
+                  <div class="row">
+                    {% for img in post.image.all %}
+                        <div class="col-md-4 col-xs-12">
+                             <img src="{{ img.image.url }}" class="post-image" />   
+                        </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}
